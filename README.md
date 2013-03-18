@@ -4,4 +4,4 @@ Drawing code modified from [A Gentle Introduction to Making HTML5 Canvas Interac
 
 Zero-padding from [superjoe30](https://gist.github.com/superjoe30/4382935).
 
-[dat.GUI](http://workshop.chromeexperiments.com/examples/gui/) for controls.
+[dat.GUI](http://workshop.chromeexperiments.com/examples/gui/) for control panel.
