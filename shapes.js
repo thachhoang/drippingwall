@@ -1,24 +1,15 @@
 ﻿// Modified from code by Simon Sarris
 // www.simonsarris.com
 // sarris@acm.org
-//
-// Last update December 2011
-//
-// Free to use and distribute at will
-// So long as you are nice to people, etc
-
-// Constructor for Shape objects to hold data for all drawn objects.
-// For now they will just be defined as rectangles.
 
 function Shape(x, y, w, h, c, fill) {
 	// This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
-	// "x || 0" just means "if there is a value for x, use that. Otherwise use 0."
 	this.x = x || 0;
 	this.y = y || 0;
-	this.w = w || 1;
-	this.h = h || 1;
-	this.c = c || 20;
-	this.fill = fill || '#AAAAAA';
+	this.w = w || 1; // width
+	this.h = h || 1; // height
+	this.c = c || 0; // curve height
+	this.fill = fill || '#AAAAAA'; // fill color
 }
 
 // Draws this shape to a given context
@@ -30,7 +21,7 @@ Shape.prototype.draw = function(ctx) {
 		b = this.y + this.h;
 	ctx.beginPath();
 	ctx.moveTo(l, t);
-	ctx.bezierCurveTo(l, t-c, r, t-c, r, t);
+	ctx.bezierCurveTo(l, t+c, r, t+c, r, t);
 	ctx.lineTo(r, b);
 	ctx.bezierCurveTo(r, b+c, l, b+c, l, b);
 	ctx.lineTo(l, t);
@@ -39,40 +30,30 @@ Shape.prototype.draw = function(ctx) {
 	ctx.fill();
 }
 
-// Determine if a point is inside the shape's bounds
-Shape.prototype.contains = function(mx, my) {
-	return (this.x <= mx) && (this.x + this.w >= mx) && (this.y <= my) && (this.y + this.h >= my);
-}
-
 function CanvasState(canvas) {
 	// **** First some setup! ****
-	
 	this.canvas = canvas;
 	this.width = canvas.width;
 	this.height = canvas.height;
 	this.ctx = canvas.getContext('2d');
 	
-	this.speed = 10;
+	this.speed = 25;
 	this.barWidth = 20;
 	this.barHeight = 50;
 	this.barCurve = 20;
 	
 	// **** Keep track of state! ****
-	
-	this.active = true;
+	this.active = true; // draw if state is active
 	this.shapes = [];  // the collection of things to be drawn
 	
-	// **** Then events! ****
-	
-	// This is an example of a closure!
-	// Right here "this" means the CanvasState. But we are making events on the Canvas itself,
-	// and when the events are fired on the canvas the variable "this" is going to mean the canvas!
-	// Since we still want to use this particular CanvasState in the events we have to save a reference to it.
-	// This is our reference!
+	// **** Then events! ****	
 	var myState = this;
 	
 	this.interval = 1000;
 	setInterval(function() { myState.draw(); }, myState.interval);
+	
+	// generate the first drips
+	this.generate();
 }
 
 CanvasState.prototype.addShape = function(shape) {
@@ -84,79 +65,76 @@ CanvasState.prototype.clear = function() {
 }
 
 CanvasState.prototype.generate = function() {
-	this.shapes = [];
-	
 	var bw = this.barWidth,
 		bh = this.barHeight,
 		bc = this.barCurve,
-		cols = 1 + this.width / bw,
-		rows = 1 + this.height / bh,
+		cols = Math.ceil(this.width / bw),
+		rows = 2 + Math.floor(this.height / bh),
 		color;
-	
+	this.shapes = [];
+	this.rows = rows;
+	this.cols = cols;
 	for (var i = 0; i < cols; i++) {
-		for (var j = 0; j < rows; j++) {
-			color = '#' + (Math.random() * 0xFFFFFF << 0).toString(16);
-			this.addShape(new Shape(i * bw, j * bh - 20, bw, bh, bc, color));
+		for (var j = rows; j > -2; j--) {
+			color = '#' + zFill((Math.random() * 0xFFFFFF << 0).toString(16), 6);
+			this.addShape(new Shape(i * bw, j * bh, bw, bh, bc, color));
 		}
 	}
-	
-	/*
-	this.addShape(new Shape(40,40,50,50)); // The default is gray
-	this.addShape(new Shape(60,140,40,60, 'lightskyblue'));
-	// Lets make some partially transparent
-	this.addShape(new Shape(80,150,60,30, 'rgba(127, 255, 212, .5)'));
-	this.addShape(new Shape(125,80,30,80, 'rgba(245, 222, 179, .7)'));	
-	*/
 }
 
-// While draw is called as often as the INTERVAL variable demands,
-// It only ever does something if the canvas gets invalidated by our code
 CanvasState.prototype.draw = function() {
 	if (this.active) {
+		// wipe canvas
 		var ctx = this.ctx;
 		this.clear();
 		
+		// resize canvas if users resize window
 		if (this.width != window.innerWidth || this.height != window.innerHeight) {
+			var regen = (this.width < window.innerWidth || this.height < window.innerHeight);
 			this.width = ctx.canvas.width  = window.innerWidth;
 			this.height = ctx.canvas.height = window.innerHeight;
-			this.generate();
+			if (regen)
+				this.generate();
 		}
 		
-		var shapes = this.shapes;
-		
-		var bh = this.barHeight,
-			rows = this.height / bh,
-			rowsH = (bh * (rows + 1)) - 20;
-		
-		// ** Add stuff you want drawn in the background all the time here **
+		var shapes = this.shapes,
+			speed = this.speed,
+			w = this.width,
+			h = this.height,
+			rh = this.barHeight * this.rows;
 		
 		// draw all shapes
 		var l = shapes.length;
 		for (var i = 0; i < l; i++) {
 			var shape = shapes[i];
-			shape.y += this.speed;
-			if (shape.y > rowsH) {
-				shape.y = -shape.h + 20;
-			}
-			// We can skip the drawing of elements that have moved off the screen:
-			if (shape.x > this.width || shape.x + shape.w < 0) {
+			
+			// skip off-screen-width elements
+			if (shape.x > w || shape.x + shape.w < 0)
 				continue;
-			}
+			
 			shapes[i].draw(ctx);
+			
+			// wrap vertically
+			if (shape.y > h)
+				shape.y -= rh;
+			
+			// drip
+			shape.y += speed;
 		}
 		
+		// draw only once
 		//this.active = false;
-		// ** Add stuff you want drawn on top all the time here **
 	}
 }
 
-// If you dont want to use <body onLoad='init()'>
-// You could uncomment this init() reference and place the script reference inside the body tag
-//init();
-
-function init() {
-	var s = new CanvasState(document.getElementById('canvas1'));
-	//s.generate();
+function zFill(numberStr, size) {
+	// pad a string with zeroes to the desired size
+	while (numberStr.length < size)
+		numberStr = "0" + numberStr;
+	return numberStr;
 }
 
-// Now go make something amazing!
+//init();
+function init() {
+	new CanvasState(document.getElementById('canvas1'));
+}
