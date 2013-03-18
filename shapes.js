@@ -38,7 +38,8 @@ function CanvasState(canvas) {
 	this.height = canvas.height;
 	this.ctx = canvas.getContext('2d');
 	
-	this.speed = 20;
+	this.speed = 7;
+	this.boost = 0;
 	this.barWidth = 20;
 	this.barHeight = 50;
 	this.barCurve = 20;
@@ -50,11 +51,17 @@ function CanvasState(canvas) {
 	// **** Then events! ****	
 	var myState = this;
 	
-	this.interval = 800;
-	setInterval(function() { myState.draw(); }, myState.interval);
+	this.interval = 200;
+	this.redraw = setInterval(function() { myState.draw(); }, myState.interval);
 	
 	// generate the first drips
 	this.generate();
+}
+
+CanvasState.prototype.resetInterval = function() {
+	clearInterval(this.redraw);
+	var myState = this;
+	this.redraw = setInterval(function() { myState.draw(); }, myState.interval);
 }
 
 CanvasState.prototype.addShape = function(shape) {
@@ -108,7 +115,8 @@ CanvasState.prototype.draw = function() {
 		var shapes = this.shapes,
 			w = this.width,
 			h = this.height,
-			rh = this.barHeight * this.rows;
+			rh = this.barHeight * this.rows,
+			boost = this.boost;
 		
 		// draw all shapes
 		var l = shapes.length;
@@ -126,7 +134,7 @@ CanvasState.prototype.draw = function() {
 				shape.y -= rh;
 			
 			// drip
-			shape.y += shape.speed;
+			shape.y += shape.speed + boost;
 		}
 		
 		// draw only once
@@ -143,5 +151,10 @@ function zFill(numberStr, size) {
 
 //init();
 function init() {
-	new CanvasState(document.getElementById('canvas1'));
+	var s = new CanvasState(document.getElementById('canvas1'));
+	var gui = new dat.GUI();
+	gui.add(s, 'interval', 50, 500).step(50).name('interval (ms)').onChange(function(v) {
+		s.resetInterval();
+	});
+	gui.add(s, 'boost', 0, 10).step(1).name('speed boost');
 }
