@@ -2,13 +2,14 @@
 // www.simonsarris.com
 // sarris@acm.org
 
-function Shape(x, y, w, h, c, fill) {
+function Shape(x, y, w, h, c, fill, speed) {
 	// This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
 	this.x = x || 0;
 	this.y = y || 0;
 	this.w = w || 1; // width
 	this.h = h || 1; // height
 	this.c = c || 0; // curve height
+	this.speed = speed || 10; // dripping speed
 	this.fill = fill || '#AAAAAA'; // fill color
 }
 
@@ -22,8 +23,8 @@ Shape.prototype.draw = function(ctx) {
 	ctx.beginPath();
 	ctx.moveTo(l, t);
 	ctx.bezierCurveTo(l, t+c, r, t+c, r, t);
-	ctx.lineTo(r, b);
-	ctx.bezierCurveTo(r, b+c, l, b+c, l, b);
+	ctx.lineTo(r, b+1); // extra pixels to eliminate white gaps
+	ctx.bezierCurveTo(r, b+c+1, l, b+c+1, l, b+1);
 	ctx.lineTo(l, t);
 	ctx.closePath();
 	ctx.fillStyle = this.fill;
@@ -37,7 +38,7 @@ function CanvasState(canvas) {
 	this.height = canvas.height;
 	this.ctx = canvas.getContext('2d');
 	
-	this.speed = 25;
+	this.speed = 20;
 	this.barWidth = 20;
 	this.barHeight = 50;
 	this.barCurve = 20;
@@ -49,7 +50,7 @@ function CanvasState(canvas) {
 	// **** Then events! ****	
 	var myState = this;
 	
-	this.interval = 1000;
+	this.interval = 800;
 	setInterval(function() { myState.draw(); }, myState.interval);
 	
 	// generate the first drips
@@ -71,13 +72,20 @@ CanvasState.prototype.generate = function() {
 		cols = Math.ceil(this.width / bw),
 		rows = 2 + Math.floor(this.height / bh),
 		color;
+	
 	this.shapes = [];
 	this.rows = rows;
 	this.cols = cols;
+	
 	for (var i = 0; i < cols; i++) {
+		var offset = Math.floor(Math.random() * bh);
+		var speed = Math.floor(Math.random() * this.speed);
+		var baseColor = Math.random() * 0xFFFFFF << 0;
 		for (var j = rows; j > -2; j--) {
-			color = '#' + zFill((Math.random() * 0xFFFFFF << 0).toString(16), 6);
-			this.addShape(new Shape(i * bw, j * bh, bw, bh, bc, color));
+			color = '#' + zFill((baseColor * Math.random() << 0).toString(16), 6);
+			if (i == 0)
+				console.log(color);
+			this.addShape(new Shape(i * bw, j * bh + offset, bw, bh, bc, color, speed));
 		}
 	}
 }
@@ -98,7 +106,6 @@ CanvasState.prototype.draw = function() {
 		}
 		
 		var shapes = this.shapes,
-			speed = this.speed,
 			w = this.width,
 			h = this.height,
 			rh = this.barHeight * this.rows;
@@ -119,7 +126,7 @@ CanvasState.prototype.draw = function() {
 				shape.y -= rh;
 			
 			// drip
-			shape.y += speed;
+			shape.y += shape.speed;
 		}
 		
 		// draw only once
