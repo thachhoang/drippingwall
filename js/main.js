@@ -77,7 +77,7 @@ CanvasState.prototype.generate = function() {
 		bh = this.barHeight,
 		bc = this.barCurve,
 		cols = Math.ceil(this.width / bw),
-		rows = 2 + Math.floor(this.height / bh),
+		rows = 3 + Math.floor(this.height / bh),
 		color;
 	
 	this.shapes = [];
@@ -88,7 +88,7 @@ CanvasState.prototype.generate = function() {
 		var offset = Math.floor(Math.random() * bh);
 		var speed = Math.floor(Math.random() * this.speed);
 		var baseColor = Math.random() * 0xFFFFFF << 0;
-		for (var j = rows; j > -2; j--) {
+		for (var j = rows; j > -3; j--) {
 			color = '#' + zFill((baseColor * Math.random() << 0).toString(16), 6);
 			if (i == 0)
 				console.log(color);
