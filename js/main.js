@@ -51,7 +51,7 @@ function CanvasState(canvas) {
 	// **** Then events! ****	
 	var myState = this;
 	
-	this.interval = 200;
+	this.interval = 50;
 	this.redraw = setInterval(function() { myState.draw(); }, myState.interval);
 	
 	// generate the first drips
