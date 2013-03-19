@@ -144,6 +144,7 @@ CanvasState.prototype.draw = function() {
 
 function zFill(numberStr, size) {
 	// pad a string with zeroes to the desired size
+	// https://gist.github.com/superjoe30/4382935
 	while (numberStr.length < size)
 		numberStr = "0" + numberStr;
 	return numberStr;
