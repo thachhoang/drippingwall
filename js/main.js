@@ -154,18 +154,20 @@ function zFill(numberStr, size) {
 function init() {
 	var HIDE_KEY_CODE = 72;
 	var s = new CanvasState(document.getElementById('canvas1'));
-	var rb = document.getElementById('ribbon');
+	//var rb = document.getElementById('ribbon');
 	
 	var gui = new dat.GUI();
 	gui.add(s, 'interval', 50, 500).step(50).name('interval (ms)').onChange(function(v) {
 		s.resetInterval();
 	});
 	gui.add(s, 'boost', 0, 10).step(1).name('speed boost');
-	gui.addFolder('Press H to hide all controls.');
+	gui.addFolder('Press H to hide controls.');
 	
+	/*
 	document.onkeydown = function(e) {
 		e = e || window.event;
 		if (document.activeElement.type !== 'text' && e.keyCode == HIDE_KEY_CODE)
 			rb.style.display = (rb.style.display == 'none') ? 'block' : 'none';
 	};
+	*/
 }
