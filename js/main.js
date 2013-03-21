@@ -155,7 +155,7 @@ function init() {
 		}
 	}
 	s.updated = Date.now();
-	update(Date.now());
+	update(s.updated + s.delay + 1);
 	
 	var gui = new dat.GUI();
 	gui.add(s, 'delay', 0, 1000).step(50).name('delay (ms)');
