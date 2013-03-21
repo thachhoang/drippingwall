@@ -83,8 +83,8 @@ CanvasState.prototype.generate = function() {
 		var baseColor = Math.random() * 0xFFFFFF << 0;
 		for (var j = rows; j > -3; j--) {
 			color = '#' + zFill((baseColor * Math.random() << 0).toString(16), 6);
-			if (i == 0)
-				console.log(color);
+			//if (i == 0)
+				//console.log(color);
 			this.addShape(new Shape(i * bw, j * bh + offset, bw, bh, bc, color, speed));
 		}
 	}
@@ -149,8 +149,10 @@ function init() {
 	var s = new CanvasState(document.getElementById('canvas1'));
 	var update = function(time){
 		window.requestAnimationFrame(update);
+		if (time < s.updated)
+			time = Date.now();
 		if (time - s.updated > s.delay) {
-			s.updated = Date.now();
+			s.updated = time;
 			s.draw();
 		}
 	}
