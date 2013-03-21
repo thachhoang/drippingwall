@@ -43,6 +43,9 @@ function CanvasState(canvas) {
 	this.barHeight = 50;
 	this.barCurve = 20;
 	
+	this.delay = 0;
+	this.updated = 0;
+	
 	// **** Keep track of state! ****
 	this.active = true; // draw if state is active
 	this.shapes = [];  // the collection of things to be drawn
@@ -76,7 +79,7 @@ CanvasState.prototype.generate = function() {
 	
 	for (var i = 0; i < cols; i++) {
 		var offset = Math.floor(Math.random() * bh);
-		var speed = Math.floor(Math.random() * this.speed);
+		var speed = Math.random();
 		var baseColor = Math.random() * 0xFFFFFF << 0;
 		for (var j = rows; j > -3; j--) {
 			color = '#' + zFill((baseColor * Math.random() << 0).toString(16), 6);
@@ -88,7 +91,7 @@ CanvasState.prototype.generate = function() {
 }
 
 CanvasState.prototype.draw = function() {
-	if (this.active) {
+	if (this.active && this.speed > 0) {
 		// wipe canvas
 		var ctx = this.ctx;
 		this.clear();
@@ -103,6 +106,7 @@ CanvasState.prototype.draw = function() {
 		}
 		
 		var shapes = this.shapes,
+			speed = this.speed,
 			w = this.width,
 			h = this.height,
 			rh = this.barHeight * this.rows;
@@ -123,7 +127,7 @@ CanvasState.prototype.draw = function() {
 				shape.y -= rh;
 			
 			// drip
-			shape.y += shape.speed;
+			shape.y += 1 + Math.floor(shape.speed * (speed + 1));
 		}
 		
 		// draw only once
@@ -141,18 +145,24 @@ function zFill(numberStr, size) {
 
 //init();
 function init() {
-	var HIDE_KEY_CODE = 72;
+	//var HIDE_KEY_CODE = 72;
 	var s = new CanvasState(document.getElementById('canvas1'));
-	var update = function(){
+	var update = function(time){
 		window.requestAnimationFrame(update);
-		s.draw();
+		if (time - s.updated > s.delay) {
+			s.updated = Date.now();
+			s.draw();
+		}
 	}
-	update();
-	/*
+	s.updated = Date.now();
+	update(Date.now());
+	
 	var gui = new dat.GUI();
-	gui.add(s, 'boost', 0, 10).step(1).name('speed boost');
+	gui.add(s, 'delay', 0, 1000).step(50).name('delay (ms)');
+	gui.add(s, 'speed', 0, 66).step(1);
 	gui.addFolder('Press H to hide controls.');
 	
+	/*
 	document.onkeydown = function(e) {
 		e = e || window.event;
 		if (document.activeElement.type !== 'text' && e.keyCode == HIDE_KEY_CODE)
