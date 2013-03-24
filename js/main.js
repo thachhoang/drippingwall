@@ -82,28 +82,31 @@ CanvasState.prototype.generate = function() {
 		var speed = Math.random();
 		var baseColor = Math.random() * 0xFFFFFF << 0;
 		for (var j = rows; j > -3; j--) {
-			color = '#' + zFill((baseColor * Math.random() << 0).toString(16), 6);
-			//if (i == 0)
-				//console.log(color);
+			color = (baseColor * Math.random() << 0).toString(16);
+			color = "#" + ("000000" + color).slice(-6);
 			this.addShape(new Shape(i * bw, j * bh + offset, bw, bh, bc, color, speed));
 		}
 	}
 }
 
 CanvasState.prototype.draw = function() {
-	if (this.active && this.speed > 0) {
+	if (this.speed > 0)
+		this.active = true;
+	
+	// resize canvas if users resize window
+	var ctx = this.ctx;
+	if (this.width != window.innerWidth || this.height != window.innerHeight) {
+		var regen = (this.width < window.innerWidth || this.height < window.innerHeight);
+		this.width = ctx.canvas.width  = window.innerWidth;
+		this.height = ctx.canvas.height = window.innerHeight;
+		if (regen)
+			this.generate();
+		this.active = true;
+	}
+	
+	if (this.active) {
 		// wipe canvas
-		var ctx = this.ctx;
 		this.clear();
-		
-		// resize canvas if users resize window
-		if (this.width != window.innerWidth || this.height != window.innerHeight) {
-			var regen = (this.width < window.innerWidth || this.height < window.innerHeight);
-			this.width = ctx.canvas.width  = window.innerWidth;
-			this.height = ctx.canvas.height = window.innerHeight;
-			if (regen)
-				this.generate();
-		}
 		
 		var shapes = this.shapes,
 			speed = this.speed,
@@ -131,23 +134,20 @@ CanvasState.prototype.draw = function() {
 		}
 		
 		// draw only once
-		//this.active = false;
+		if (speed == 0)
+			this.active = false;
 	}
-}
-
-function zFill(numberStr, size) {
-	// pad a string with zeroes to the desired size
-	// https://gist.github.com/superjoe30/4382935
-	while (numberStr.length < size)
-		numberStr = "0" + numberStr;
-	return numberStr;
 }
 
 //init();
 function init() {
-	//var HIDE_KEY_CODE = 72;
-	var s = new CanvasState(document.getElementById('canvas1'));
-	var update = function(time){
+	var c = document.getElementById('canvas1'),
+		g = document.getElementById('gauge'),
+		s = new CanvasState(c),
+		max_speed = 66,
+		lock = false;
+	
+	var update = function(time) {
 		window.requestAnimationFrame(update);
 		if (time < s.updated)
 			time = Date.now();
@@ -159,12 +159,37 @@ function init() {
 	s.updated = Date.now();
 	update(s.updated + s.delay + 1);
 	
+	g.innerHTML = Math.round(100 * (s.speed / max_speed));
+	var adjust = function(e) {
+		var tar = 20,
+			my = e.clientY,
+			wy = window.innerHeight;
+		if (my < tar)
+			ns = 0; // top 20px gutter: no movement
+		else if (my > wy - tar)
+			ns = 1; // bottom 20px gutter: maximum speed
+		else
+			ns = (my - tar) / (wy - 2 * tar);
+		s.speed = max_speed * ns;
+		g.innerHTML = Math.round(100 * ns) + (lock && !isMobile.any() ? " locked" : "");
+	}
+	
+	c.onmousemove = function(e) {
+		if (!lock)
+			adjust(e);
+	};
+	
+	c.onclick = function(e) {
+		lock = !lock; // toggle tracking mouse position
+		adjust(e);
+	}
+	
+	/*
+	var HIDE_KEY_CODE = 72;
 	var gui = new dat.GUI();
 	gui.add(s, 'delay', 0, 1000).step(50).name('delay (ms)');
 	gui.add(s, 'speed', 0, 66).step(1);
 	gui.addFolder('Press H to hide controls.');
-	
-	/*
 	document.onkeydown = function(e) {
 		e = e || window.event;
 		if (document.activeElement.type !== 'text' && e.keyCode == HIDE_KEY_CODE)
