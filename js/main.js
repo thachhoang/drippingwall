@@ -141,7 +141,7 @@ CanvasState.prototype.draw = function() {
 
 //init();
 function init() {
-	var c = document.getElementById('canvas1'),
+	var c = document.getElementById('canvas'),
 		g = document.getElementById('gauge'),
 		s = new CanvasState(c),
 		max_speed = 66,

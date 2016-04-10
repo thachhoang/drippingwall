@@ -1,31 +1,30 @@
-<!doctype HTML>
+<!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<meta name="author" content="Thach Hoang">
-<meta name="description" content="Watch paint dry.">
-<title>Dripping wall</title>
-<!-- https://github.com/thachhoang/dripping_wall" -->
-<style>
-html, body {
-	width: 100%;
-	height: 100%;
-	margin: 0; padding: 0;
-	overflow: hidden;
-}
-#gauge {
-	color: white;
-	position: absolute;
-	top: 0; left: 0;
-}
-</style>
-</head>
-<body onload="init()">
-<canvas id="canvas1">Your browser does not support HTML5 Canvas.</canvas>
-<div id="gauge">0<div>
-<script type="text/javascript" src="js/dat.gui.min.js"></script>
-<script type="text/javascript" src="js/rAF.js"></script>
-<script type="text/javascript" src="js/mobile.js"></script>
-<script type="text/javascript" src="js/main.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Thach Hoang">
+        <meta name="description" content="Watch paint dry.">
+        <title>Dripping wall</title>
+        <!-- https://github.com/thachhoang/drippingwall -->
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0; padding: 0;
+                overflow: hidden;
+            }
+            #gauge {
+                color: white;
+                position: absolute;
+                top: 0; left: 0;
+            }
+        </style>
+    </head>
+    <body onload="init()">
+        <canvas id="canvas">Your browser does not support HTML5 Canvas.</canvas>
+        <div id="gauge">0</div>
+        <script type="text/javascript" src="js/rAF.js"></script>
+        <script type="text/javascript" src="js/mobile.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+    </body>
 </html>
