@@ -34,7 +34,6 @@ Shape.prototype.draw = function(ctx) {
 };
 
 function CanvasState(canvas) {
-    // **** First some setup! ****
     this.canvas = canvas;
     this.width = canvas.width;
     this.height = canvas.height;
@@ -48,24 +47,12 @@ function CanvasState(canvas) {
     this.delay = 0;
     this.updated = 0;
 
-    // **** Keep track of state! ****
     this.active = true; // draw if state is active
     this.shapes = []; // the collection of things to be drawn
-
-    // **** Then events! ****
-    var myState = this;
 
     // generate the first drips
     this.generate();
 }
-
-CanvasState.prototype.addShape = function(shape) {
-    this.shapes.push(shape);
-};
-
-CanvasState.prototype.clear = function() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-};
 
 CanvasState.prototype.generate = function() {
     var bw = this.barWidth,
@@ -86,7 +73,7 @@ CanvasState.prototype.generate = function() {
         for (var j = rows; j > -3; j--) {
             color = (baseColor * Math.random() << 0).toString(16);
             color = "#" + ("000000" + color).slice(-6);
-            this.addShape(new Shape(i * bw, j * bh + offset, bw, bh, bc, color, speed));
+            this.shapes.push(new Shape(i * bw, j * bh + offset, bw, bh, bc, color, speed));
         }
     }
 };
@@ -107,9 +94,6 @@ CanvasState.prototype.draw = function() {
     }
 
     if (this.active) {
-        // wipe canvas
-        this.clear();
-
         var shapes = this.shapes,
             speed = this.speed,
             w = this.width,
@@ -141,12 +125,11 @@ CanvasState.prototype.draw = function() {
     }
 };
 
-//init();
 function init() {
     var c = document.getElementById('canvas'),
         g = document.getElementById('gauge'),
         s = new CanvasState(c),
-        max_speed = 66,
+        maxSpeed = 66,
         lock = false;
 
     var update = function(time) {
@@ -161,7 +144,7 @@ function init() {
     s.updated = Date.now();
     update(s.updated + s.delay + 1);
 
-    g.innerHTML = Math.round(100 * (s.speed / max_speed));
+    g.innerHTML = Math.round(100 * (s.speed / maxSpeed));
     var adjust = function(e) {
         var tar = 20,
             ns,
@@ -173,7 +156,7 @@ function init() {
             ns = 1; // bottom 20px gutter: maximum speed
         else
             ns = (my - tar) / (wy - 2 * tar);
-        s.speed = max_speed * ns;
+        s.speed = maxSpeed * ns;
         g.innerHTML = Math.round(100 * ns) + (lock && !isMobile.any() ? " locked" : "");
     };
 
